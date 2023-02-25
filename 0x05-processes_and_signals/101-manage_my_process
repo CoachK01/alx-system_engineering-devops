@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
-# Manages 'manage_my_process'
-
-if [ "${1}" == "start" ]
-then
+# start, restart and stop the manage_my_process process
+# shellcheck disable=SC2086
+pid="$(pgrep -f ./manage_my_process)"
+case "$1" in
+  start)
     ./manage_my_process &
-    touch /var/run/my_process.pid
-    echo "$!" > /var/run/my_process.pid
+	sudo touch /var/run/my_process.pid
+    echo "$pid" > "/var/run/my_process.pid"
     echo "manage_my_process started"
-elif [ "${1}" == "stop" ]
-then
+    ;;
+  stop)
+    kill "$pid"
+    sudo rm -rf /var/run/my_process.pid
     echo "manage_my_process stopped"
-    kill "$(cat /var/run/my_process.pid)"
-    rm /var/run/my_process.pid
-elif [ "${1}" == "restart" ]
-then
-    kill "$(cat /var/run/my_process.pid)"
-    rm /var/run/my_process.pid
+    ;;
+  restart)
+    kill "$pid"
+    sudo rm -rf /var/run/my_process.pid
     ./manage_my_process &
-    touch /var/run/my_process.pid
-    echo "$!" > /var/run/my_process.pid
+    echo "$pid" > "/var/run/my_process.pid"
     echo "manage_my_process restarted"
-else
+    ;;
+  *)
     echo "Usage: manage_my_process {start|stop|restart}"
-fi
+    ;;
+esac
